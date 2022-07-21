@@ -1,76 +1,79 @@
-version: '3'
+version: '3.8'
+
+volumes:
+  minio_data:
+  db_volume:
 
 services:
 
-  anaconda:
-    image: continuumio/anaconda3
-    volumes:
-       - ./:/opt/notebooks
-    ports:
-      - "8888:8888"
-    command:
-      /bin/bash -c "/opt/conda/bin/conda install jupyter -y --quiet && /opt/conda/bin/jupyter notebook --notebook-dir=/opt/notebooks --ip='0.0.0.0' --port=8888 --no-browser --allow-root"
-    tty: true
-  
-  mssql:
-   image: mcr.microsoft.com/mssql/server:2022-latest
-   environment:
-     - SA_PASSWORD=GB760gb760!
-     - ACCEPT_EULA=Y
-     - MSSQL_PID=Developer
-     - hostname=mssql
-   ports:
-     - "1433:1433"
-   container_name: mssql
-
-  #sqlpad:
-  # To use Dockerfile at root of this project, use build instead of image
-  # build: ../../
-    #image: sqlpad/sqlpad:latest
-    #hostname: 'sqlpad'
-    #name: 'sqlpad' 
-    #container_name: 'sqlpad'
-    #ports:
-    #  - '3000:3000'
-    #environment:
-    #  SQLPAD_ADMIN: 'admin'
-    #  SQLPAD_ADMIN_PASSWORD: 'password'
-    #  SQLPAD_APP_LOG_LEVEL: info
-    #  SQLPAD_WEB_LOG_LEVEL: warn
-    #  SQLPAD_CONNECTIONS__sqlserverdemo__name: SQL Server Demo
-    #  SQLPAD_CONNECTIONS__sqlserverdemo__driver: sqlserver
-    #  SQLPAD_CONNECTIONS__sqlserverdemo__host: mssql
-    #  SQLPAD_CONNECTIONS__sqlserverdemo__database: master
-    #  SQLPAD_CONNECTIONS__sqlserverdemo__username: sa
-    #  SQLPAD_CONNECTIONS__sqlserverdemo__password: GB760gb760!
-    #volumes:
-    #  - '/mnt/d/src/lab/sqlpad/data:/var/lib/sqlpad'
-      #- '~/sqlpad/data:/var/lib/sqlpad'
-
-  #sqlite3:
-  # image: nouchka/sqlite3:latest
-  # stdin_open: true
-  # tty: true
-  # volumes:
-  #   - ./db/:/root/db/
-
-  #sqlitebrowser:
-  # image: lscr.io/linuxserver/sqlitebrowser:latest
-  # container_name: sqlitebrowser
+  #mlflow-db:
+  # image: mcr.microsoft.com/mssql/server:2022-latest
   # environment:
-  #   - PUID=1000
-  #   - PGID=1000
-  #   - TZ=Europe/London
-  # volumes:
-  #   - .:/config
+  #   - SA_PASSWORD=GB760gb760
+  #   - ACCEPT_EULA=Y
+  #   - MSSQL_PID=Developer
+  #   - hostname=mssql
   # ports:
-  #   - 4000:3000
-  # restart: unless-stopped
-  #cloudbeaver:
-  #  image: dbeaver/cloudbeaver:latest
-  #  container_name: cloudbeaver
-  #  restart: unless-stopped
-  #  ports:
-  #    - "8200:8978"
-  #  volumes:
-  #    - ./workspace:/opt/cloudbeaver/workspace
+  #   - "1433:1433"
+  # container_name: mssql
+  db:
+    image: mysql
+    container_name: mysql
+    #volumes:
+    #  - ~/mysql-docker-data:/var/lib/mysql
+    volumes:
+      - db_volume:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+
+  mlflow-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlflow_server
+    environment:
+      AWS_REGION: eu-west-3
+      AWS_DEFAULT_REGION: eu-west-3
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: adminadmin
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    ports:
+      - "5000:5000"
+    depends_on:
+    - mc
+    - db
+    command: mlflow server --host 0.0.0.0 --backend-store-uri mysql+pymysql://root:12345@db:3306/mydb --default-artifact-root s3://mlflow/
+
+  minio:
+    restart: always
+    container_name: mlflow_s3
+    image: minio/minio
+    command: server /data --console-address ':9001' --address ':9000'
+    ports:
+        - "9000:9000"
+        - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: adminadmin
+    volumes:
+      - minio_data:/data
+
+  mc:
+      image: minio/mc
+      depends_on:
+          - minio
+      container_name: mc
+      env_file:
+          - .env
+      entrypoint: >
+          /bin/sh -c "
+          /tmp/wait-for-it.sh minio:9000 &&
+          /usr/bin/mc alias set minio http://minio:9000 admin adminadmin &&
+          /usr/bin/mc mb minio/mlflow;
+          exit 0;
+          "
+      volumes:
+          - ./wait-for-it.sh:/tmp/wait-for-it.sh
