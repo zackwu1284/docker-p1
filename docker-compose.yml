@@ -5,17 +5,6 @@ volumes:
   db_volume:
 
 services:
-
-  #mlflow-db:
-  # image: mcr.microsoft.com/mssql/server:2022-latest
-  # environment:
-  #   - SA_PASSWORD=GB760gb760
-  #   - ACCEPT_EULA=Y
-  #   - MSSQL_PID=Developer
-  #   - hostname=mssql
-  # ports:
-  #   - "1433:1433"
-  # container_name: mssql
   db:
     image: mysql
     container_name: mysql
@@ -24,8 +13,8 @@ services:
     volumes:
       - db_volume:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 12345
-      MYSQL_DATABASE: mydb
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     ports:
       - "3306:3306"
 
@@ -34,18 +23,21 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: mlflow_server
+    env_file:
+      - .env
     environment:
       AWS_REGION: eu-west-3
       AWS_DEFAULT_REGION: eu-west-3
-      AWS_ACCESS_KEY_ID: admin
-      AWS_SECRET_ACCESS_KEY: adminadmin
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     ports:
       - "5000:5000"
     depends_on:
     - mc
     - db
-    command: mlflow server --host 0.0.0.0 --backend-store-uri mysql+pymysql://root:12345@db:3306/mydb --default-artifact-root s3://mlflow/
+    
+    command: mlflow server --host 0.0.0.0 --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_ROOT_PASSWORD}@db:3306/${MYSQL_DATABASE} --default-artifact-root s3://mlflow/
 
   minio:
     restart: always
@@ -56,8 +48,8 @@ services:
         - "9000:9000"
         - "9001:9001"
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: adminadmin
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
     volumes:
       - minio_data:/data
 
@@ -71,7 +63,7 @@ services:
       entrypoint: >
           /bin/sh -c "
           /tmp/wait-for-it.sh minio:9000 &&
-          /usr/bin/mc alias set minio http://minio:9000 admin adminadmin &&
+          /usr/bin/mc alias set minio http://minio:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
           /usr/bin/mc mb minio/mlflow;
           exit 0;
           "
