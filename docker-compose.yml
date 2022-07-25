@@ -4,12 +4,16 @@ volumes:
   minio_data:
   db_volume:
 
+networks:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+
 services:
   db:
     image: mysql
     container_name: mysql
-    #volumes:
-    #  - ~/mysql-docker-data:/var/lib/mysql
     volumes:
       - db_volume:/var/lib/mysql
     environment:
@@ -17,10 +21,12 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
     ports:
       - "3306:3306"
+    networks:
+      - backend
 
   mlflow-server:
     build:
-      context: .
+      context: ./mlflow
       dockerfile: Dockerfile
     container_name: mlflow_server
     env_file:
@@ -33,11 +39,18 @@ services:
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     ports:
       - "5000:5000"
+    #expose:
+    #  - 5000
     depends_on:
     - mc
     - db
-    
-    command: mlflow server --host 0.0.0.0 --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_ROOT_PASSWORD}@db:3306/${MYSQL_DATABASE} --default-artifact-root s3://mlflow/
+    networks:
+    - frontend
+    - backend
+    command:
+    - sh
+    - -c
+    - mlflow server --host 0.0.0.0 --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_ROOT_PASSWORD}@db:3306/${MYSQL_DATABASE} --default-artifact-root s3://mlflow/
 
   minio:
     restart: always
@@ -52,20 +65,39 @@ services:
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
     volumes:
       - minio_data:/data
+    networks:
+      - backend
 
   mc:
-      image: minio/mc
-      depends_on:
-          - minio
-      container_name: mc
-      env_file:
-          - .env
-      entrypoint: >
-          /bin/sh -c "
-          /tmp/wait-for-it.sh minio:9000 &&
-          /usr/bin/mc alias set minio http://minio:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
-          /usr/bin/mc mb minio/mlflow;
-          exit 0;
-          "
-      volumes:
-          - ./wait-for-it.sh:/tmp/wait-for-it.sh
+    image: minio/mc
+    depends_on:
+        - minio
+    container_name: mc
+    env_file:
+        - .env
+    entrypoint: >
+        /bin/sh -c "
+        /tmp/wait-for-it.sh minio:9000 &&
+        /usr/bin/mc alias set minio http://minio:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
+        /usr/bin/mc mb minio/mlflow;
+        exit 0;
+        "
+    volumes:
+        - ./wait-for-it.sh:/tmp/wait-for-it.sh
+    networks:
+      - backend
+  nginx:
+    restart: always
+    build: ./nginx
+    image: mlflow_nginx
+    container_name: mlflow_nginx
+    ports:
+        - "80:80"
+    environment:
+        - BASIC_AUTH_USERNAME=user
+        - BASIC_AUTH_PASSWORD=1234
+    entrypoint: sh /run.sh
+    depends_on:
+        - mlflow_server
+    networks:
+      - frontend

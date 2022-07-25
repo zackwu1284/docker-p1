@@ -17,7 +17,7 @@ mlflow.set_tracking_uri("http://localhost:5000")
 mlflow.set_experiment("test-experiment")
 
 data=["gongguan_underfitting.csv","gongguan_best.csv","gongguan_overfitting.csv"]
-size = [0.3,0.4,0.5,0.6,0.7]
+size = [0.3,0.4,0.5]
 for i in size:
     with mlflow.start_run(run_name="test size:" + str(i)):
         bike=pd.read_csv("gongguan_best.csv")
