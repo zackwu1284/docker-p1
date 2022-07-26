@@ -1,7 +1,0 @@
-name: tutorial
-#docker_env:
-#  image:  mlflow-docker-example
-conda_env: conda.yaml
-entry_points:
-  main:
-    command: "python train.py"
