@@ -19,7 +19,7 @@ os.environ['MLFLOW_S3_ENDPOINT_URL'] = "http://localhost:9000"
 
 # set mlflow track uri
 mlflow.set_tracking_uri("http://localhost:5000")
-mlflow.set_experiment("test-experiment")
+mlflow.set_experiment("test-experiment_v2")
 
 df1=pd.read_csv("fraudTest.csv")
 df2=pd.read_csv("fraudTrain.csv")
