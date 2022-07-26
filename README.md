@@ -17,3 +17,7 @@ python train.py
 ## Min IO
 127.0.0.1:9000
 
+## Nginx
+
+In train.py, we use 127.0.0.1:5000 to connect to ml flow server. If we want to do authentication in future, we could give others 127.0.0.1:80,
+so they would need to enter through proxy. In other words, they would need to have passwords in order to access ml flow tracking server.
