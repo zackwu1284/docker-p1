@@ -14,7 +14,7 @@ python train.py
 ## ML flow
 127.0.0.1:5000
 
-## Min IO
+## MinIO
 127.0.0.1:9000
 
 ## Nginx
