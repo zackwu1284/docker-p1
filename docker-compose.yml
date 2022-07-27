@@ -16,6 +16,8 @@ services:
     container_name: mysql
     volumes:
       - db_volume:/var/lib/mysql
+    env_file:
+        - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -93,9 +95,11 @@ services:
     container_name: mlflow_nginx
     ports:
         - "80:80"
+    env_file:
+        - .env    
     environment:
-        - BASIC_AUTH_USERNAME=user
-        - BASIC_AUTH_PASSWORD=1234
+        - BASIC_AUTH_USERNAME=${AUTH_USER}
+        - BASIC_AUTH_PASSWORD=${AUTH_PASSWORD}
     entrypoint: sh /run.sh
     depends_on:
         - mlflow_server
