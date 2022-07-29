@@ -16,8 +16,6 @@ services:
     container_name: mysql
     volumes:
       - db_volume:/var/lib/mysql
-    env_file:
-        - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
