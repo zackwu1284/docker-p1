@@ -29,7 +29,7 @@ so they would need to enter through proxy. In other words, they would need to ha
 ## Data
 data souce :  https://www.kaggle.com/datasets/kartik2112/fraud-detection?select=fraudTest.csv
 
-You will need to download datasets on kaggle before you can execute `python logistic.py`
+Open Analysis Notebook and run all to perform data modeling.
 
 
 
