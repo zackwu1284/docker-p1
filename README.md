@@ -31,5 +31,9 @@ data souce :  https://www.kaggle.com/datasets/kartik2112/fraud-detection?select=
 
 Open Analysis Notebook and run all to perform data modeling.
 
+## Tableau Public
+
+https://public.tableau.com/views/CreditCardFraudAnalysisDashboard/Dashboard1?:language=en-US&:display_count=n&:origin=viz_share_link
+
 
 
