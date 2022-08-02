@@ -11,9 +11,11 @@
 `docker-compose -f docker-compose.yml up`
 
 ## Train models
- `python linear.py`
+ `python RFCmodel.py`
 
  `python logistic.py`
+ 
+ Run Analysis.ipynb
 
 ## ML flow
 `127.0.0.1:5000`
@@ -29,7 +31,6 @@ so they would need to enter through proxy. In other words, they would need to ha
 ## Data
 data souce :  https://www.kaggle.com/datasets/kartik2112/fraud-detection?select=fraudTest.csv
 
-Open Analysis Notebook and run all to perform data modeling.
 
 ## Tableau Public
 
