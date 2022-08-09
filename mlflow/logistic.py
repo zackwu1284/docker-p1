@@ -2,7 +2,7 @@
 import pandas as pd 
 #modules for data cleaning and data analysis
 from sklearn.model_selection import train_test_split
-from imblearn.over_sampling import SMOTE
+#from imblearn.over_sampling import SMOTE
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
@@ -10,7 +10,7 @@ import mlflow
 import os
 
 # Use IP of your remote machine here
-server_ip = "0.0.0.0"
+server_ip = "172.23.120.50"
 
 # set up minio credentials and connection
 os.environ['AWS_ACCESS_KEY_ID'] = 'admin'
@@ -47,13 +47,13 @@ with mlflow.start_run(run_name="logistic test:"):
     x=pd.get_dummies(x,drop_first=True)
 
     train_x, test_x, train_y, test_y = train_test_split(x,y,test_size=0.3)
-    del x
-    del y
-    method= SMOTE()
-    x_resampled, y_resampled = method.fit_resample(train_x, train_y)
+    #del x
+    #del y
+    #method= SMOTE()
+    #x_resampled, y_resampled = method.fit_resample(train_x, train_y)
 
     model=LogisticRegression()
-    model.fit(x_resampled,y_resampled)
+    model.fit(train_x,train_y)
     predicted=model.predict(test_x)
 
     print("Classification report:\n", classification_report(test_y, predicted))
