@@ -36,5 +36,8 @@ data souce :  https://www.kaggle.com/datasets/kartik2112/fraud-detection?select=
 
 https://public.tableau.com/views/CreditCardFraudAnalysisDashboard/Dashboard1?:language=en-US&:display_count=n&:origin=viz_share_link
 
-
+## Notes
+- If you want to train models on your host (out of container), you will need to prepare python packages and libraries. EX: conda install mlflow. If training models inside mlflow container, you don't need to prepare the environment, because it's written in dockerfile.
+- If you want to train models inside mlflow container, you need to make sure the ip address inside you python files point to you IPV4 address. If your ip address is
+localhost, you cannot be able to locate min IO inside a container. Hence, you will get an error. 
 
