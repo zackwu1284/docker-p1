@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
 from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score,plot_confusion_matrix,classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score,classification_report
 from sklearn.model_selection import train_test_split
 #from mlflow import log_metric, log_param, log_artifacts
 import mlflow
 import os
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import LabelEncoder
 
 # Import train and test dataset, merge both datasets because the datasets were seperated in a chronological order. We want randomize our datasets.
