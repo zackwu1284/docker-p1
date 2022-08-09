@@ -7,6 +7,9 @@ Check the notes before you start.
 - We use MySql as our backend.
 - We use minIO as our buckets.
 
+## Structure
+![POWERPNT_z5tJ6HxLft](https://user-images.githubusercontent.com/90475308/183558986-0c60a2ed-f841-4484-b144-04cda069c10d.png)
+
 ## To start the application
 `docker-compose -f docker-compose.yml up`
 
